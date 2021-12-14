@@ -1,4 +1,4 @@
-﻿Shader "Unlit/Tex2DShader"
+﻿Shader "Unlit/LuminanceShader"
 {
 	Properties
 	{
@@ -46,7 +46,10 @@
 
 		fixed4 frag(v2f i) : SV_Target
 		{
-			return tex2D(_MainTex,i.uv) * _Color;
+			float4 tex = tex2D(_MainTex,i.uv);
+			float luminance = 0.2125 * tex.rgb.r + 0.07154 * tex.rgb.g + 0.0721 * tex.rgb.b;			
+			float4 col = float4(luminance, luminance, luminance, tex.rgba.a) * _Color;
+			return col;
 		}
 	ENDCG
 }

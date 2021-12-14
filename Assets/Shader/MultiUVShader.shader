@@ -1,9 +1,8 @@
-﻿Shader "Unlit/Tex2DShader"
+﻿Shader "Unlit/MultiUVShader"
 {
 	Properties
 	{
 		_MainTex("Texture", 2D) = "white" {}
-		_Color("Color",color) = (1,1,1,1)
 	}
 		SubShader
 	{
@@ -46,7 +45,7 @@
 
 		fixed4 frag(v2f i) : SV_Target
 		{
-			return tex2D(_MainTex,i.uv) * _Color;
+			return tex2D(_MainTex,i.uv * 2);
 		}
 	ENDCG
 }

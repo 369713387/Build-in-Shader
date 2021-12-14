@@ -1,4 +1,4 @@
-﻿Shader "Unlit/Tex2DShader"
+﻿Shader "Unlit/Tex2DUVColorShader"
 {
 	Properties
 	{
@@ -46,7 +46,9 @@
 
 		fixed4 frag(v2f i) : SV_Target
 		{
-			return tex2D(_MainTex,i.uv) * _Color;
+			float4 color = fixed4(i.uv.r,i.uv.g,0,1);
+
+			return tex2D(_MainTex,i.uv) * color;
 		}
 	ENDCG
 }
