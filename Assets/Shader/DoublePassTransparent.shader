@@ -1,26 +1,33 @@
-﻿Shader "Unlit/DoubleRendering"
+﻿// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
+
+Shader "Unlit/DoublePassTransparent"
 {
-	Properties{
-		_MainTex("Main Texture", 2D) = "white"{}
+	Properties
+	{
+		_MainTex("Texture", 2D) = "white" {}
+		_SecondTex("Texture", 2D) = "white" {}
 	}
 	SubShader
 	{
+		Tags { "RenderType" = "Opaque" }
+		LOD 100
+
 		CGINCLUDE
-		//声明类型
 		sampler2D _MainTex;
-		//获取模型数据
+		sampler2D _SecondTex;
+
 		struct appdata
 		{
 			float4 vertex : POSITION;
 			float2 uv: TEXCOORD0;
 		};
-		//存放计算结果
+
 		struct v2f
 		{
 			float4 vertex : SV_POSITION;
 			float2 uv: TEXCOORD1;
 		};
-		//数据给FS
+
 		v2f vert(appdata v)
 		{
 			v2f o;
@@ -29,47 +36,50 @@
 			return o;
 		}
 		ENDCG
-		//渲染类型，适用于透明通道
-		Tags { "RenderType" = "Transparent" }
-		LOD 100
+
 		Pass
 		{
 			Blend SrcAlpha OneMinusSrcAlpha
+			Cull Off
 			ZWrite Off
+
 			CGPROGRAM
 			#pragma vertex vert
 			#pragma fragment frag
+			// make fog work
+			#pragma multi_compile_fog
+
 			#include "UnityCG.cginc"
-			//FS阶段
+
 			fixed4 frag(v2f i) : SV_Target
 			{
 				// sample the texture
 				fixed4 col = tex2D(_MainTex, i.uv);
 				return col;
 			}
-			ENDCG//pass结束：没有报错
-		}
-
-		pass
-		{
-			Blend SrcAlpha OneMinusSrcAlpha
-			Cull Front
-			ZWrite Off
-			CGPROGRAM
-			#pragma vertex vert
-			#pragma fragment frag
-			#include "UnityCG.cginc"
-
-			float4 frag(v2f i) :SV_Target
-			{
-				float4 color = tex2D(_MainTex,i.uv);
-				float alpha = color.a;
-				float4 white = (1,1,1,1);
-				color = lerp(white, color, 1 - alpha);
-				return color;
-			}
 			ENDCG
 		}
 
+		Pass
+		{
+			Cull Front
+			ZWrite Off
+
+			CGPROGRAM
+			#pragma vertex vert
+			#pragma fragment frag
+			// make fog work
+			#pragma multi_compile_fog
+
+			#include "UnityCG.cginc"
+
+			fixed4 frag(v2f i) : SV_Target
+			{
+				// sample the texture
+				fixed4 col = tex2D(_SecondTex, i.uv);
+				return col;
+			}
+			ENDCG
+		}
 	}
 }
